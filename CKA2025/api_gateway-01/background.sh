@@ -37,22 +37,10 @@ kubectl wait --namespace nginx-gateway \
   --timeout=180s || echo "Warning: Gateway Fabric wait timed out"
 echo "GATEWAY_FABRIC_READY" >> /tmp/background-status.txt
 
-echo "--- Creating GatewayClass ---"
-cat <<EOF > /tmp/nginx-gateway-class.yaml
-apiVersion: gateway.networking.k8s.io/v1
-kind: GatewayClass
-metadata:
-  name: nginx-gateway-class
-spec:
-  controllerName: "nginx.org/gateway-controller"
-EOF
+# Use the default 'nginx' GatewayClass created by NGINX Gateway Fabric
+# No need to create a custom one
+echo "USING_DEFAULT_GATEWAYCLASS" >> /tmp/background-status.txt
 
-kubectl apply -f /tmp/nginx-gateway-class.yaml
-echo "GATEWAYCLASS_CREATED" >> /tmp/background-status.txt
-
-# Don't wait - it causes Killercoda to hang
-# kubectl wait would block here
-echo "GATEWAYCLASS_WAIT_SKIPPED" >> /tmp/background-status.txt
 
 echo "--- Creating Nginx Deployment ---"
 cat <<EOF > /tmp/nginx-deployment.yaml

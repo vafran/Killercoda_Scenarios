@@ -5,8 +5,8 @@ if ! kubectl get gateway nginx-gateway &> /dev/null; then
     exit 1
 fi
 
-if ! kubectl get gateway nginx-gateway -o json | grep '"gatewayClassName": "nginx-gateway-class"' &> /dev/null; then
-    echo "'nginx-gateway' does not use 'nginx-gateway-class' as gatewayClassName."
+if ! kubectl get gateway nginx-gateway -o json | grep '"gatewayClassName": "nginx"' &> /dev/null; then
+    echo "'nginx-gateway' does not use 'nginx' as gatewayClassName."
     exit 1
 fi
 
