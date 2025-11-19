@@ -46,7 +46,7 @@ kubectl wait --for=condition=Accepted gatewayclass nginx-gateway-class --timeout
 sleep 5
 
 echo "--- Creating the initial Nginx application ---"
-cat <<EOF | kubectl apply -f -
+cat <<EOF > /tmp/nginx-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -68,7 +68,14 @@ spec:
         - containerPort: 80
 EOF
 
-cat <<EOF | kubectl apply -f -
+echo "--- Creating the initial Nginx application (Deployment) ---"
+while ! kubectl get deployment nginx-deployment &> /dev/null; do
+  kubectl apply -f /tmp/nginx-deployment.yaml
+  echo "Waiting for nginx-deployment to be created..."
+  sleep 2
+done
+
+cat <<EOF > /tmp/nginx-service.yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -82,8 +89,15 @@ spec:
     targetPort: 80
 EOF
 
+echo "--- Creating the initial Nginx application (Service) ---"
+while ! kubectl get service nginx-service &> /dev/null; do
+  kubectl apply -f /tmp/nginx-service.yaml
+  echo "Waiting for nginx-service to be created..."
+  sleep 2
+done
+
 echo "--- Creating the existing Ingress resource ---"
-cat <<EOF | kubectl apply -f -
+cat <<EOF > /tmp/nginx-ingress.yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -100,6 +114,13 @@ spec:
             port:
               number: 80
 EOF
+
+echo "--- Creating the existing Ingress resource ---"
+while ! kubectl get ingress nginx-ingress &> /dev/null; do
+  kubectl apply -f /tmp/nginx-ingress.yaml
+  echo "Waiting for nginx-ingress to be created..."
+  sleep 2
+done
 
 echo "--- Initial setup complete! ---"
 echo "You now have a running Nginx application exposed via an Ingress resource."
