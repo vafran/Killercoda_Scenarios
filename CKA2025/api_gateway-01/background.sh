@@ -80,7 +80,7 @@ spec:
 EOF
 
 echo "--- Creating the existing Ingress resource ---"
-cat <<EOF | kubectl apply -f -
+cat <<EOF > /tmp/nginx-ingress.yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -97,6 +97,16 @@ spec:
             port:
               number: 80
 EOF
+
+echo "--- Creating the existing Ingress resource ---"
+# Retry applying the Ingress to handle potential webhook readiness issues
+for i in {1..30}; do
+  if kubectl apply -f /tmp/nginx-ingress.yaml; then
+    break
+  fi
+  echo "Waiting for Ingress webhook to be ready... ($i/30)"
+  sleep 5
+done
 
 echo "--- Initial setup complete! ---"
 echo "You now have a running Nginx application exposed via an Ingress resource."
