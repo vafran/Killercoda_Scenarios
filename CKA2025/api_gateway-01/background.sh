@@ -50,7 +50,9 @@ EOF
 kubectl apply -f /tmp/nginx-gateway-class.yaml
 echo "GATEWAYCLASS_CREATED" >> /tmp/background-status.txt
 
-kubectl wait --for=condition=Accepted gatewayclass nginx-gateway-class --timeout=120s || echo "Warning: GatewayClass not accepted"
+# Don't wait - it causes Killercoda to hang
+# kubectl wait would block here
+echo "GATEWAYCLASS_WAIT_SKIPPED" >> /tmp/background-status.txt
 
 echo "--- Creating Nginx Deployment ---"
 cat <<EOF > /tmp/nginx-deployment.yaml
