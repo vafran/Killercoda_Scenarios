@@ -75,11 +75,7 @@ spec:
         - containerPort: 80
 EOF
 
-while ! kubectl get deployment nginx-deployment &> /dev/null; do
-  kubectl apply -f /tmp/nginx-deployment.yaml
-  echo "Waiting for nginx-deployment to be created..."
-  sleep 2
-done
+kubectl apply -f /tmp/nginx-deployment.yaml
 echo "DEPLOYMENT_CREATED" >> /tmp/background-status.txt
 
 echo "--- Creating Nginx Service ---"
@@ -97,11 +93,7 @@ spec:
     targetPort: 80
 EOF
 
-while ! kubectl get service nginx-service &> /dev/null; do
-  kubectl apply -f /tmp/nginx-service.yaml
-  echo "Waiting for nginx-service to be created..."
-  sleep 2
-done
+kubectl apply -f /tmp/nginx-service.yaml
 echo "SERVICE_CREATED" >> /tmp/background-status.txt
 
 echo "--- Creating Ingress ---"
@@ -123,11 +115,7 @@ spec:
               number: 80
 EOF
 
-while ! kubectl get ingress nginx-ingress &> /dev/null; do
-  kubectl apply -f /tmp/nginx-ingress.yaml
-  echo "Waiting for nginx-ingress to be created..."
-  sleep 2
-done
+kubectl apply -f /tmp/nginx-ingress.yaml
 echo "INGRESS_CREATED" >> /tmp/background-status.txt
 
 echo "SETUP_COMPLETE" >> /tmp/background-status.txt
