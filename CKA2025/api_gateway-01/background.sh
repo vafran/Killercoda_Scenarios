@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x  # Enable debug output
 
 # This script sets up the initial environment for the scenario.
 # It installs both the NGINX Ingress Controller and NGINX Gateway Fabric,
@@ -15,10 +16,10 @@ kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/cont
 kubectl wait --namespace ingress-nginx \
   --for=condition=ready pod \
   --selector=app.kubernetes.io/component=controller \
-  --timeout=180s
+  --timeout=180s || echo "Warning: Ingress controller wait timed out, continuing anyway"
 
 echo "--- Deleting NGINX Ingress Admission Webhook ---"
-kubectl delete validatingwebhookconfigurations ingress-nginx-admission
+kubectl delete validatingwebhookconfigurations ingress-nginx-admission || echo "Warning: Could not delete webhook, continuing anyway"
 
 echo "--- Installing NGINX Gateway Fabric (Gateway API Controller) ---"
 kubectl apply -f https://raw.githubusercontent.com/nginx/nginx-gateway-fabric/v1.6.2/deploy/crds.yaml
@@ -27,7 +28,7 @@ kubectl apply -f https://raw.githubusercontent.com/nginx/nginx-gateway-fabric/v1
 kubectl wait --namespace nginx-gateway \
   --for=condition=ready pod \
   --selector=app.kubernetes.io/name=nginx-gateway-fabric \
-  --timeout=180s
+  --timeout=180s || echo "Warning: Gateway Fabric wait timed out, continuing anyway"
 
 echo "--- Creating GatewayClass for NGINX Gateway Fabric ---"
 cat <<EOF > /tmp/nginx-gateway-class.yaml
