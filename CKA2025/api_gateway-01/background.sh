@@ -47,11 +47,7 @@ spec:
   controllerName: "nginx.org/gateway-controller"
 EOF
 
-while ! kubectl get gatewayclass nginx-gateway-class &> /dev/null; do
-  kubectl apply -f /tmp/nginx-gateway-class.yaml
-  echo "Waiting for nginx-gateway-class to be created..."
-  sleep 2
-done
+kubectl apply -f /tmp/nginx-gateway-class.yaml
 echo "GATEWAYCLASS_CREATED" >> /tmp/background-status.txt
 
 kubectl wait --for=condition=Accepted gatewayclass nginx-gateway-class --timeout=120s || echo "Warning: GatewayClass not accepted"
