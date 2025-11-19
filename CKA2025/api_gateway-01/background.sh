@@ -5,7 +5,7 @@
 # and deploys an application with a pre-existing Ingress resource.
 
 echo "--- Installing Gateway API CRDs ---"
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.1.0/standard-install.yaml
+kubectl apply --server-side -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.1.0/standard-install.yaml
 
 sleep 10
 
@@ -28,7 +28,7 @@ kubectl wait --namespace nginx-gateway \
 
 echo "--- Creating GatewayClass for NGINX Gateway Fabric ---"
 cat <<EOF | kubectl apply -f -
-apiVersion: gateway.networking.k8s.io/v1beta1
+apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass
 metadata:
   name: nginx-gateway-class
