@@ -5,18 +5,23 @@ set -x  # Enable debug output
 # It installs both the NGINX Ingress Controller and NGINX Gateway Fabric,
 # and deploys an application with a pre-existing Ingress resource.
 
+echo "SCRIPT_STARTED" > /tmp/background-status.txt
+
 echo "--- Installing Gateway API CRDs ---"
 kubectl apply --server-side -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.1.0/standard-install.yaml
+echo "GATEWAY_API_CRDS_APPLIED" >> /tmp/background-status.txt
 
 sleep 10
 
 echo "--- Installing NGINX Ingress Controller ---"
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.10.1/deploy/static/provider/cloud/deploy.yaml
+echo "INGRESS_NGINX_APPLIED" >> /tmp/background-status.txt
 
 kubectl wait --namespace ingress-nginx \
   --for=condition=ready pod \
   --selector=app.kubernetes.io/component=controller \
   --timeout=180s || echo "Warning: Ingress controller wait timed out, continuing anyway"
+echo "INGRESS_NGINX_READY" >> /tmp/background-status.txt
 
 echo "--- Deleting NGINX Ingress Admission Webhook ---"
 kubectl delete validatingwebhookconfigurations ingress-nginx-admission || echo "Warning: Could not delete webhook, continuing anyway"
