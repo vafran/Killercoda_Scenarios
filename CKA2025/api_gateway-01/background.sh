@@ -1,9 +1,8 @@
 #!/bin/bash
-set -x  # Enable debug output
 
-# This script sets up the initial environment for the scenario.
-# It installs both the NGINX Ingress Controller and NGINX Gateway Fabric,
-# and deploys an application with a pre-existing Ingress resource.
+# Redirect all output to a log file for debugging
+exec > /tmp/background-setup.log 2>&1
+set -x
 
 echo "SCRIPT_STARTED" > /tmp/background-status.txt
 
@@ -11,7 +10,8 @@ echo "--- Installing Gateway API CRDs ---"
 kubectl apply --server-side -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.1.0/standard-install.yaml
 echo "GATEWAY_API_CRDS_APPLIED" >> /tmp/background-status.txt
 
-sleep 10
+# Wait for CRDs to be established
+kubectl wait --for condition=established --timeout=60s crd/gatewayclasses.gateway.networking.k8s.io || echo "Warning: GatewayClass CRD wait timed out"
 
 echo "--- Installing NGINX Ingress Controller ---"
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.10.1/deploy/static/provider/cloud/deploy.yaml
@@ -20,22 +20,24 @@ echo "INGRESS_NGINX_APPLIED" >> /tmp/background-status.txt
 kubectl wait --namespace ingress-nginx \
   --for=condition=ready pod \
   --selector=app.kubernetes.io/component=controller \
-  --timeout=180s || echo "Warning: Ingress controller wait timed out, continuing anyway"
+  --timeout=180s || echo "Warning: Ingress controller wait timed out"
 echo "INGRESS_NGINX_READY" >> /tmp/background-status.txt
 
 echo "--- Deleting NGINX Ingress Admission Webhook ---"
-kubectl delete validatingwebhookconfigurations ingress-nginx-admission || echo "Warning: Could not delete webhook, continuing anyway"
+kubectl delete validatingwebhookconfigurations ingress-nginx-admission || echo "Warning: Could not delete webhook"
 
-echo "--- Installing NGINX Gateway Fabric (Gateway API Controller) ---"
+echo "--- Installing NGINX Gateway Fabric ---"
 kubectl apply -f https://raw.githubusercontent.com/nginx/nginx-gateway-fabric/v1.6.2/deploy/crds.yaml
 kubectl apply -f https://raw.githubusercontent.com/nginx/nginx-gateway-fabric/v1.6.2/deploy/default/deploy.yaml
+echo "GATEWAY_FABRIC_APPLIED" >> /tmp/background-status.txt
 
 kubectl wait --namespace nginx-gateway \
   --for=condition=ready pod \
   --selector=app.kubernetes.io/name=nginx-gateway-fabric \
-  --timeout=180s || echo "Warning: Gateway Fabric wait timed out, continuing anyway"
+  --timeout=180s || echo "Warning: Gateway Fabric wait timed out"
+echo "GATEWAY_FABRIC_READY" >> /tmp/background-status.txt
 
-echo "--- Creating GatewayClass for NGINX Gateway Fabric ---"
+echo "--- Creating GatewayClass ---"
 cat <<EOF > /tmp/nginx-gateway-class.yaml
 apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass
@@ -50,14 +52,11 @@ while ! kubectl get gatewayclass nginx-gateway-class &> /dev/null; do
   echo "Waiting for nginx-gateway-class to be created..."
   sleep 2
 done
+echo "GATEWAYCLASS_CREATED" >> /tmp/background-status.txt
 
-# Wait for the GatewayClass to be accepted by the controller
-kubectl wait --for=condition=Accepted gatewayclass nginx-gateway-class --timeout=120s
+kubectl wait --for=condition=Accepted gatewayclass nginx-gateway-class --timeout=120s || echo "Warning: GatewayClass not accepted"
 
-# Give a moment for all resources to become available
-sleep 5
-
-echo "--- Creating the initial Nginx application ---"
+echo "--- Creating Nginx Deployment ---"
 cat <<EOF > /tmp/nginx-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -80,13 +79,14 @@ spec:
         - containerPort: 80
 EOF
 
-echo "--- Creating the initial Nginx application (Deployment) ---"
 while ! kubectl get deployment nginx-deployment &> /dev/null; do
   kubectl apply -f /tmp/nginx-deployment.yaml
   echo "Waiting for nginx-deployment to be created..."
   sleep 2
 done
+echo "DEPLOYMENT_CREATED" >> /tmp/background-status.txt
 
+echo "--- Creating Nginx Service ---"
 cat <<EOF > /tmp/nginx-service.yaml
 apiVersion: v1
 kind: Service
@@ -101,14 +101,14 @@ spec:
     targetPort: 80
 EOF
 
-echo "--- Creating the initial Nginx application (Service) ---"
 while ! kubectl get service nginx-service &> /dev/null; do
   kubectl apply -f /tmp/nginx-service.yaml
   echo "Waiting for nginx-service to be created..."
   sleep 2
 done
+echo "SERVICE_CREATED" >> /tmp/background-status.txt
 
-echo "--- Creating the existing Ingress resource ---"
+echo "--- Creating Ingress ---"
 cat <<EOF > /tmp/nginx-ingress.yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -127,13 +127,14 @@ spec:
               number: 80
 EOF
 
-echo "--- Creating the existing Ingress resource ---"
 while ! kubectl get ingress nginx-ingress &> /dev/null; do
   kubectl apply -f /tmp/nginx-ingress.yaml
   echo "Waiting for nginx-ingress to be created..."
   sleep 2
 done
+echo "INGRESS_CREATED" >> /tmp/background-status.txt
 
+echo "SETUP_COMPLETE" >> /tmp/background-status.txt
 echo "--- Initial setup complete! ---"
-echo "You now have a running Nginx application exposed via an Ingress resource."
-echo "Use 'kubectl get all' and 'kubectl get gatewayclass' to see the resources."
+echo "Check /tmp/background-setup.log for detailed output"
+echo "Check /tmp/background-status.txt for status"
