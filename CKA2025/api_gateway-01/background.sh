@@ -30,7 +30,7 @@ kubectl wait --namespace nginx-gateway \
   --timeout=180s
 
 echo "--- Creating GatewayClass for NGINX Gateway Fabric ---"
-cat <<EOF | kubectl apply -f -
+cat <<EOF > /tmp/nginx-gateway-class.yaml
 apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass
 metadata:
@@ -38,6 +38,12 @@ metadata:
 spec:
   controllerName: "nginx.org/gateway-controller"
 EOF
+
+while ! kubectl get gatewayclass nginx-gateway-class &> /dev/null; do
+  kubectl apply -f /tmp/nginx-gateway-class.yaml
+  echo "Waiting for nginx-gateway-class to be created..."
+  sleep 2
+done
 
 # Wait for the GatewayClass to be accepted by the controller
 kubectl wait --for=condition=Accepted gatewayclass nginx-gateway-class --timeout=120s
