@@ -1,23 +1,24 @@
 {
-    "title": "Upgrade to Gateway API",
-    "description": "Learn to migrate a Kubernetes Ingress resource to the more powerful Gateway API.",
-    "details": {
-      "intro": {
-        "text": "intro.md",
-        "background": "background.sh"
-      },
-      "steps": [
-        {
-          "title": "Migrating to the Gateway API",
-          "text": "step1/q.md",
-          "verify": "step1/v.sh"
-        }
-      ],
-      "finish": {
-        "text": "finish.md"
-      }
+  "title": "Upgrade to Gateway API",
+  "description": "Learn to migrate a Kubernetes Ingress resource to the more powerful Gateway API.",
+  "details": {
+    "intro": {
+      "text": "intro.md",
+      "background": "background.sh",
+      "foreground": "foreground.sh"
     },
-    "backend": {
-      "imageid": "kubernetes-kubeadm-2nodes"
+    "steps": [
+      {
+        "title": "Migrating to the Gateway API",
+        "text": "step1/q.md",
+        "verify": "step1/v.sh"
+      }
+    ],
+    "finish": {
+      "text": "finish.md"
     }
+  },
+  "backend": {
+    "imageid": "kubernetes-kubeadm-2nodes"
+  }
 }

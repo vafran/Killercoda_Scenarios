@@ -118,6 +118,10 @@ for i in {1..30}; do
 done
 
 echo "SETUP_COMPLETE" >> /tmp/background-status.txt
+
+# Signal completion for foreground script
+touch /tmp/background-finished
+
 echo "--- Initial setup complete! ---"
 echo "Check /tmp/background-setup.log for detailed output"
 echo "Check /tmp/background-status.txt for status"
