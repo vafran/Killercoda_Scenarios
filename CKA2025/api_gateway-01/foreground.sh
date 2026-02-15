@@ -1,5 +1,5 @@
-# Clear screen for cleaner startup
-clear
+# Disable terminal echo so script commands aren't shown
+stty -echo
 
 # Trap interrupts (Ctrl+C, Ctrl+Z) to prevent cancellation
 trap '' SIGINT SIGTSTP
