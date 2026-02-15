@@ -4,6 +4,9 @@ stty -echo
 # Trap interrupts (Ctrl+C, Ctrl+Z) to prevent cancellation
 trap '' SIGINT SIGTSTP
 
+# Clear screen to hide any initial artifacts
+clear
+
 echo "Setting up environment... Please wait."
 
 # Hide cursor
@@ -28,3 +31,6 @@ echo -e "\rDone! Environment is ready.      "
 
 # Untrap signals
 trap - SIGINT SIGTSTP
+
+# Re-enable terminal echo
+stty echo
