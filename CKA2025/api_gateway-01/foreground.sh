@@ -5,15 +5,13 @@ stty -echo
 trap '' SIGINT SIGTSTP
 
 # Clear screen to hide any initial artifacts
-clear
-
-echo "Setting up environment... Please wait."
 
 # Hide cursor
 tput civis
 
 spinner=( '⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏' )
 
+clear
 while [ ! -f /tmp/background-finished ]; do
   for i in "${spinner[@]}"; do
     echo -ne "\r$i Setup in progress..."
@@ -34,3 +32,5 @@ trap - SIGINT SIGTSTP
 
 # Re-enable terminal echo
 stty echo
+
+clear
