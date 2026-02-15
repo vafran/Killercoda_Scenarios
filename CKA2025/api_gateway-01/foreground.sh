@@ -1,4 +1,27 @@
-#!/bin/bash
-echo "Waiting for background setup to complete..."
-while [ ! -f /tmp/background-finished ]; do sleep 1; done
-echo "Setup complete! You can now start the scenario."
+# Trap interrupts (Ctrl+C, Ctrl+Z) to prevent cancellation
+trap '' SIGINT SIGTSTP
+
+echo "Setting up environment... Please wait."
+
+# Hide cursor
+tput civis
+
+spinner=( '⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏' )
+
+while [ ! -f /tmp/background-finished ]; do
+  for i in "${spinner[@]}"; do
+    echo -ne "\r$i Setup in progress..."
+    sleep 0.1
+    # Check explicitly inside loop to avoid waiting for full spinner cycle
+    if [ -f /tmp/background-finished ]; then
+      break 2
+    fi
+  done
+done
+
+# Show cursor
+tput cnorm
+echo -e "\rDone! Environment is ready.      "
+
+# Untrap signals
+trap - SIGINT SIGTSTP
