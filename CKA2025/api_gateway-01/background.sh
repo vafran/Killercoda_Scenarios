@@ -108,6 +108,15 @@ EOF
 kubectl apply -f /tmp/nginx-ingress.yaml
 echo "INGRESS_CREATED" >> /tmp/background-status.txt
 
+# Wait for Ingress to be created
+# Using a simple loop as 'kubectl wait' on resources might be flaky if they don't exist yet
+for i in {1..30}; do
+  if kubectl get ingress nginx-ingress &> /dev/null; then
+    break
+  fi
+  sleep 1
+done
+
 echo "SETUP_COMPLETE" >> /tmp/background-status.txt
 echo "--- Initial setup complete! ---"
 echo "Check /tmp/background-setup.log for detailed output"
