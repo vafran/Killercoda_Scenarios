@@ -1,3 +1,6 @@
+# Clear screen for cleaner startup
+clear
+
 # Trap interrupts (Ctrl+C, Ctrl+Z) to prevent cancellation
 trap '' SIGINT SIGTSTP
 
